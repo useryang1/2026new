@@ -1,0 +1,154 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #000;
+    overflow: hidden;
+    font-family: 'Microsoft YaHei', sans-serif;
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#fireworks {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 开始屏幕 */
+#start-screen {
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+#start-btn {
+    padding: 15px 40px;
+    font-size: 24px;
+    background: linear-gradient(45deg, #ff0000, #ff6b6b);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#start-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+}
+
+/* 倒计时 */
+#countdown-container {
+    position: fixed;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+#countdown {
+    font-size: 200px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* 祝福语和马 */
+#greeting-container {
+    position: fixed;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    animation: fadeIn 2s ease-in-out;
+}
+
+.horse-wrapper {
+    margin-bottom: 20px;
+}
+
+.glowing-horse {
+    font-size: 150px;
+    /* 马的辉光效果 */
+    text-shadow: 
+        0 0 10px #ffd700,
+        0 0 20px #ffd700,
+        0 0 30px #e60000,
+        0 0 40px #e60000,
+        0 0 70px #e60000;
+    animation: gallop 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes gallop {
+    0% { 
+        transform: translateY(0) rotate(0deg) scale(1); 
+        text-shadow: 0 0 10px #ffd700, 0 0 20px #e60000;
+    }
+    100% { 
+        transform: translateY(-20px) rotate(5deg) scale(1.1); 
+        text-shadow: 0 0 20px #ffd700, 0 0 40px #e60000, 0 0 60px #ff0000;
+    }
+}
+
+.glow-text {
+    font-size: 80px;
+    margin-bottom: 10px;
+    color: #fff;
+    text-shadow: 
+        0 0 5px #fff,
+        0 0 10px #fff,
+        0 0 20px #ff00de,
+        0 0 30px #ff00de,
+        0 0 40px #ff00de;
+    animation: textGlow 2s infinite alternate;
+}
+
+.sub-text {
+    font-size: 40px;
+    color: #ffd700;
+    text-shadow: 0 0 10px #ffd700;
+    letter-spacing: 5px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes textGlow {
+    from { text-shadow: 0 0 10px #fff, 0 0 20px #ff00de; }
+    to { text-shadow: 0 0 20px #fff, 0 0 30px #ff00de, 0 0 40px #ff00de; }
+}

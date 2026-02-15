@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 跨年盛典 - 马到成功 - 欢乐版</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 背景音乐 -->
+    <audio id="bgm" loop>
+        <!-- 请替换为您的音乐文件，例如 music.mp3 -->
+        <!-- 如果没有本地文件，您可以尝试使用以下在线示例（请确保网络畅通）： -->
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        <source src="music.mp3" type="audio/mpeg">
+        您的浏览器不支持 audio 元素。
+    </audio>
+
+    <!-- 烟花画布 -->
+    <canvas id="fireworks"></canvas>
+
+    <!-- 开始按钮（解决浏览器自动播放限制） -->
+    <div id="start-screen">
+        <button id="start-btn">开启 2026 跨年盛典</button>
+    </div>
+
+    <!-- 倒计时 -->
+    <div id="countdown-container" class="hidden">
+        <div id="countdown">5</div>
+    </div>
+
+    <!-- 祝福语和马 -->
+    <div id="greeting-container" class="hidden">
+        <div class="horse-wrapper">
+            <!-- 使用 SVG 绘制一匹简单的马，或者使用 emoji -->
+            <div class="glowing-horse">🐎</div>
+        </div>
+        <h1 class="glow-text">2026 新年快乐</h1>
+        <h2 class="sub-text">金马奔腾 · 万事如意</h2>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
