@@ -114,7 +114,7 @@
         /* Video Preview */
         #video-preview {
             position: absolute;
-            bottom: 20px;
+            top: 20px;
             left: 20px;
             width: 120px;
             height: 90px;
@@ -123,6 +123,7 @@
             transform: scaleX(-1);
             opacity: 0.8;
             z-index: 10;
+            bottom: auto;
         }
 
         #loading {
@@ -147,15 +148,14 @@
             text-shadow: 1px 1px 2px black;
         }
         
-        #fullscreen-btn {
+        #fullscreen-btn, #music-btn {
             position: absolute;
             bottom: 20px;
-            right: 20px;
+            width: 40px;
+            height: 40px;
             background: rgba(255, 0, 0, 0.5);
             border: 1px solid gold;
             color: gold;
-            width: 40px;
-            height: 40px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -163,6 +163,14 @@
             justify-content: center;
             font-size: 20px;
             z-index: 100;
+        }
+
+        #fullscreen-btn {
+            right: 20px;
+        }
+
+        #music-btn {
+            right: 70px;
         }
 
         /* Mobile Adjustments */
@@ -181,13 +189,20 @@
             #video-preview {
                 width: 90px;
                 height: 67px;
-                bottom: 10px;
+                top: 10px;
                 left: 10px;
-                top: auto;
+                bottom: auto;
             }
             #fullscreen-btn {
                 bottom: 10px;
                 right: 10px;
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            #music-btn {
+                bottom: 10px;
+                right: 55px;
                 width: 35px;
                 height: 35px;
                 font-size: 16px;
@@ -216,7 +231,16 @@
         </div>
     </div>
 
+    <button id="music-btn" onclick="toggleMusic()">🔇</button>
     <button id="fullscreen-btn" onclick="toggleFullScreen()">⛶</button>
+    
+    <!-- Background Music -->
+    <audio id="bgm" loop>
+        <source src="https://music.163.com/song/media/outer/url?id=396696.mp3" type="audio/mpeg">
+        <source src="https://music.163.com/song/media/outer/url?id=396019.mp3" type="audio/mpeg">
+        <source src="https://cdn.pixabay.com/audio/2024/01/16/audio_e2b992254f.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
 
     <!-- Import Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -256,7 +280,8 @@
             handRotation: { x: 0, y: 0 },
             handOpenness: 1.0, // 0 (Closed) to 1 (Open)
             isHandDetected: false,
-            isTouchMode: false
+            isTouchMode: false,
+            handWaveSpeed: 0 // Speed of hand movement
         };
 
         // --- Three.js Setup ---
@@ -529,6 +554,8 @@
             blessingText.innerHTML = `${b1}<br>${b2}`;
         }
 
+        let lastWristPos = null;
+
         function onResults(results) {
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 state.isHandDetected = true;
@@ -537,11 +564,21 @@
                 statusElement.style.color = "#0f0";
                 
                 const landmarks = results.multiHandLandmarks[0];
+                const wrist = landmarks[0];
+
+                // Calculate Hand Wave Speed
+                if (lastWristPos) {
+                    const dx = wrist.x - lastWristPos.x;
+                    const dy = wrist.y - lastWristPos.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    // Smoothing
+                    state.handWaveSpeed = THREE.MathUtils.lerp(state.handWaveSpeed, dist * 30, 0.1); 
+                }
+                lastWristPos = { x: wrist.x, y: wrist.y };
                 
                 // 1. Openness (Thumb to Index)
                 const thumbTip = landmarks[4];
                 const indexTip = landmarks[8];
-                const wrist = landmarks[0];
                 const middleMcp = landmarks[9];
                 
                 const handSize = Math.sqrt(Math.pow(middleMcp.x - wrist.x, 2) + Math.pow(middleMcp.y - wrist.y, 2));
@@ -596,6 +633,8 @@
                 
             } else {
                 state.isHandDetected = false;
+                lastWristPos = null;
+                state.handWaveSpeed = 0; // Reset speed
                 if (!state.isTouchMode) {
                     statusElement.innerText = "等待手势...";
                     statusElement.style.color = "#aaa";
@@ -680,13 +719,30 @@
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
 
-            // Update Animation Speed based on Hand Openness
+            // Update Animation Speed based on Hand Openness AND Wave Speed
             // Open = Fast (2.0), Closed = Stop (0.0)
-            const targetSpeed = state.handOpenness * 2.0;
+            // Wave Speed adds multiplier (up to 3x)
+            
+            let baseSpeed = state.handOpenness * 1.5; // Normal running speed
+            
+            // If hand is detected and waving
+            if (state.isHandDetected) {
+                // Wave speed can boost timeScale significantly
+                // state.handWaveSpeed is roughly 0 to 5+
+                const waveBoost = Math.min(state.handWaveSpeed, 3.0); 
+                baseSpeed += waveBoost; 
+                
+                // Visual feedback for speed
+                if (waveBoost > 1.0) {
+                    statusElement.innerText = "🚀 加速中!!!";
+                    statusElement.style.color = "#ff0000";
+                    statusElement.style.textShadow = "0 0 10px gold";
+                }
+            }
             
             if (mixer) {
                 // Smooth transition
-                mixer.timeScale = THREE.MathUtils.lerp(mixer.timeScale, targetSpeed, 0.1);
+                mixer.timeScale = THREE.MathUtils.lerp(mixer.timeScale, baseSpeed, 0.1);
                 mixer.update(delta);
             }
             
@@ -704,7 +760,31 @@
             renderer.render(scene, camera);
         }
         
-        // Fullscreen
+        // Fullscreen & Music
+        const bgm = document.getElementById('bgm');
+        const musicBtn = document.getElementById('music-btn');
+        let isMusicPlaying = false;
+
+        window.toggleMusic = function() {
+            if (isMusicPlaying) {
+                bgm.pause();
+                musicBtn.innerText = "🔇";
+                isMusicPlaying = false;
+            } else {
+                bgm.play().then(() => {
+                    musicBtn.innerText = "🎵";
+                    isMusicPlaying = true;
+                }).catch(err => {
+                    console.warn("Autoplay blocked", err);
+                });
+            }
+        }
+
+        // Try autoplay on first interaction
+        document.body.addEventListener('click', () => {
+            if (!isMusicPlaying) toggleMusic();
+        }, { once: true });
+        
         window.toggleFullScreen = function() {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen();
             else document.exitFullscreen();
