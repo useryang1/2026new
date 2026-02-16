@@ -168,16 +168,33 @@
         /* Mobile Adjustments */
         @media (max-width: 600px) {
             #ui-container {
-                width: auto;
-                left: 20px;
-                right: 20px;
-                top: auto;
-                bottom: 80px; /* Above fullscreen btn */
-                padding: 15px;
+                width: 90%;
+                max-width: 320px;
+                padding: 20px;
+                gap: 10px;
+                border-radius: 15px;
             }
+            h1 { font-size: 24px; letter-spacing: 1px; }
+            .blessing-text { font-size: 28px; }
+            .blessing-card { padding: 15px; }
+
             #video-preview {
-                top: 20px;
-                bottom: auto;
+                width: 90px;
+                height: 67px;
+                bottom: 10px;
+                left: 10px;
+                top: auto;
+            }
+            #fullscreen-btn {
+                bottom: 10px;
+                right: 10px;
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            #start-hint {
+                bottom: 80px;
+                font-size: 18px;
             }
         }
     </style>
@@ -247,8 +264,8 @@
         scene.fog = new THREE.FogExp2(0x050005, 0.002); // Dark Reddish Fog
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-        // Center the camera more effectively, and look down slightly
-        camera.position.set(0, 50, 120); 
+        // Position camera to look at the horse from slightly below, making it look majestic
+        camera.position.set(0, 10, 140);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -270,8 +287,9 @@
         controls.maxPolarAngle = Math.PI / 2;
         controls.minDistance = 20;
         controls.maxDistance = 500;
-        // Ensure we look at the center of the scene
-        controls.target.set(0, 30, 0); // Target higher up so horse is at top visually
+        
+        // Target BELOW the horse (y=-30) so the horse (y=0) appears in the UPPER part of the screen
+        controls.target.set(0, -30, 0); 
 
         // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
