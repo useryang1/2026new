@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Christmas Tree Controller</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #0ff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            touch-action: none; /* Prevent default scrolling */
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #touch-area {
+            flex: 1;
+            background: radial-gradient(circle, #001122 0%, #000 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border-bottom: 2px solid #0ff;
+            box-shadow: 0 0 15px #0ff;
+        }
+        #touch-area::after {
+            content: "TOUCH_INTERFACE";
+            color: #0ff;
+            font-size: 18px;
+            pointer-events: none;
+            opacity: 0.5;
+            text-shadow: 0 0 5px #0ff;
+        }
+        #controls {
+            height: 150px;
+            background: #000510;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+        }
+        .btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid #f0f;
+            background: transparent;
+            color: #f0f;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px #f0f;
+            transition: all 0.1s;
+            text-transform: uppercase;
+            font-family: 'Courier New', monospace;
+        }
+        .btn:active {
+            transform: scale(0.95);
+            background: #f0f;
+            color: #000;
+        }
+        #status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #0f0;
+            font-size: 12px;
+            text-shadow: 0 0 5px #0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">CONNECTING...</div>
+    <div id="touch-area"></div>
+    <div id="controls">
+        <button class="btn" onclick="sendTap()">PULSE</button>
+        <button class="btn" style="border-color: #0ff; color: #0ff; box-shadow: 0 0 10px #0ff;" onclick="resetView()">RESET</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const status = document.getElementById('status');
+        const touchArea = document.getElementById('touch-area');
+
+        socket.on('connect', () => {
+            status.textContent = 'Connected';
+            status.style.color = '#0f0';
+        });
+
+        socket.on('disconnect', () => {
+            status.textContent = 'Disconnected';
+            status.style.color = '#f00';
+        });
+
+        // Touch handling for rotation (pan) and light (move)
+        let isDragging = false;
+        let previousTouch = null;
+
+        touchArea.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            previousTouch = e.touches[0];
+            
+            // Send initial position for light
+            const x = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+            const y = -(e.touches[0].clientY / (window.innerHeight - 150)) * 2 + 1; // Adjust for control bar height
+            socket.emit('pointerMove', { x, y });
+        }, { passive: false });
+
+        touchArea.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDragging) return;
+
+            const touch = e.touches[0];
+            
+            // Calculate delta for rotation
+            const deltaX = touch.clientX - previousTouch.clientX;
+            const deltaY = touch.clientY - previousTouch.clientY;
+
+            // Send rotation event
+            socket.emit('rotate', { deltaX, deltaY });
+
+            // Send light position event
+            // Mapping touch area to screen coordinates roughly
+            const x = (touch.clientX / window.innerWidth) * 2 - 1;
+            // Approximate height of touch area vs screen for Y mapping
+            const y = -(touch.clientY / touchArea.clientHeight) * 2 + 1;
+            
+            socket.emit('pointerMove', { x, y });
+
+            previousTouch = touch;
+        }, { passive: false });
+
+        touchArea.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        function sendTap() {
+            // Simulate a tap at a random position or center
+            socket.emit('tap', { x: 0, y: 0, random: true });
+        }
+        
+        function resetView() {
+            // You can implement a reset view event on server/client
+            // For now let's just trigger a big pop
+            socket.emit('tap', { x: 0, y: 0, random: true, big: true });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "3d-christmas-tree-interactive",
+  "version": "1.0.0",
+  "description": "Interactive 3D Christmas Tree with Mobile Controller",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "qrcode": "^1.5.3"
+  }
+}
