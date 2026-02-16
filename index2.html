@@ -11,39 +11,40 @@
         /* UI Panel - Initially Hidden */
         #ui-container {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 20, 50, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 215, 0, 0.5);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0); /* Center and scaled down */
+            background: rgba(255, 20, 50, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 215, 0, 0.8);
             color: #fff;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            width: 260px;
+            gap: 20px;
+            width: 80%;
+            max-width: 400px;
             z-index: 100;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease;
-            transform: translateX(300px); /* Start off-screen */
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.8);
             opacity: 0;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy pop effect */
         }
 
         #ui-container.visible {
-            transform: translateX(0);
+            transform: translate(-50%, -50%) scale(1);
             opacity: 1;
         }
 
-        h1 { margin: 0 0 10px 0; font-size: 24px; font-weight: 700; color: #ffd700; text-align: center; text-shadow: 0 0 5px #ff0000; }
+        h1 { margin: 0 0 10px 0; font-size: 32px; font-weight: 700; color: #ffd700; text-align: center; text-shadow: 0 0 10px #ff0000; letter-spacing: 2px; }
         
         .blessing-card {
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 20px;
             text-align: center;
             border: 1px solid rgba(255, 215, 0, 0.3);
-            animation: pulse 2s infinite;
+            animation: pulse 1.5s infinite;
         }
         
         @keyframes pulse {
@@ -53,13 +54,14 @@
         }
         
         .blessing-text {
-            font-size: 20px;
-            line-height: 1.5;
+            font-size: 36px;
+            line-height: 1.4;
             color: #fff;
-            font-weight: bold;
-            background: linear-gradient(to right, #ffd700, #fff, #ffd700);
+            font-weight: 900;
+            background: linear-gradient(to bottom, #ffd700, #fff, #ffd700);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(255, 0, 0, 0.5);
         }
         
         /* Initial Hint */
@@ -99,6 +101,10 @@
             color: gold;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .red-packet.paused {
+            animation-play-state: paused;
         }
         
         @keyframes fall {
@@ -241,8 +247,8 @@
         scene.fog = new THREE.FogExp2(0x050005, 0.002); // Dark Reddish Fog
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-        // Center the camera more effectively
-        camera.position.set(20, 30, 100);
+        // Center the camera more effectively, and look down slightly
+        camera.position.set(0, 50, 120); 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -265,7 +271,7 @@
         controls.minDistance = 20;
         controls.maxDistance = 500;
         // Ensure we look at the center of the scene
-        controls.target.set(0, 10, 0); 
+        controls.target.set(0, 30, 0); // Target higher up so horse is at top visually
 
         // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -526,17 +532,32 @@
                 let openness = pinchDist / handSize;
                 state.handOpenness = THREE.MathUtils.clamp(THREE.MathUtils.mapLinear(openness, 0.2, 0.8, 0, 1), 0, 1);
                 
-                // Trigger Blessing on Open Hand
-                if (state.handOpenness > 0.8 && !hasTriggeredBlessing) {
-                    hasTriggeredBlessing = true;
-                    // Show Random Blessing
-                    showRandomBlessing();
-                    // Show UI
-                    uiContainer.classList.add('visible');
-                    // Hide Hint
-                    startHint.style.display = 'none';
-                    // Trigger Rain
-                    triggerRedPacketRain();
+                // --- Gesture Logic ---
+                const redPackets = document.querySelectorAll('.red-packet');
+
+                if (state.handOpenness < 0.3) {
+                    // Fist Gesture: Pause Rain
+                    statusElement.innerText = "✊ 握拳暂停";
+                    statusElement.style.color = "#ff0"; // Yellow warning
+                    redPackets.forEach(p => p.classList.add('paused'));
+                } else {
+                    // Open Hand: Resume Rain & Check Trigger
+                    statusElement.innerText = "🖐️ 手势识别中...";
+                    statusElement.style.color = "#0f0";
+                    redPackets.forEach(p => p.classList.remove('paused'));
+
+                    // Trigger Blessing on Fully Open Hand
+                    if (state.handOpenness > 0.8 && !hasTriggeredBlessing) {
+                        hasTriggeredBlessing = true;
+                        // Show Random Blessing
+                        showRandomBlessing();
+                        // Show UI
+                        uiContainer.classList.add('visible');
+                        // Hide Hint
+                        startHint.style.display = 'none';
+                        // Trigger Rain
+                        triggerRedPacketRain();
+                    }
                 }
                 
                 // 2. Position -> Rotation
