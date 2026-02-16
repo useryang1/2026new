@@ -264,8 +264,9 @@
         scene.fog = new THREE.FogExp2(0x050005, 0.002); // Dark Reddish Fog
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-        // Position camera to look at the horse from slightly below, making it look majestic
-        camera.position.set(0, 10, 140);
+        // Position camera to top-left relative to the horse
+        // x < 0: left, y > 0: top, z > 0: front
+        camera.position.set(-80, 50, 100);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -288,8 +289,8 @@
         controls.minDistance = 20;
         controls.maxDistance = 500;
         
-        // Target BELOW the horse (y=-30) so the horse (y=0) appears in the UPPER part of the screen
-        controls.target.set(0, -30, 0); 
+        // Target slightly below center to keep horse in upper view
+        controls.target.set(0, -20, 0); 
 
         // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -565,16 +566,24 @@
                     redPackets.forEach(p => p.classList.remove('paused'));
 
                     // Trigger Blessing on Fully Open Hand
-                    if (state.handOpenness > 0.8 && !hasTriggeredBlessing) {
-                        hasTriggeredBlessing = true;
+                    // We also check if UI is NOT currently visible to avoid spamming
+                    if (state.handOpenness > 0.8 && !uiContainer.classList.contains('visible')) {
                         // Show Random Blessing
                         showRandomBlessing();
+                        
                         // Show UI
                         uiContainer.classList.add('visible');
+                        
                         // Hide Hint
                         startHint.style.display = 'none';
+                        
                         // Trigger Rain
                         triggerRedPacketRain();
+
+                        // Auto-hide UI after 2 seconds
+                        setTimeout(() => {
+                            uiContainer.classList.remove('visible');
+                        }, 2000);
                     }
                 }
                 
