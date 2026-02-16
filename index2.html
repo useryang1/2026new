@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 赛博马年祝福 - 手势互动</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050005; font-family: 'Microsoft YaHei', sans-serif; touch-action: none; position: fixed; width: 100%; height: 100%; }
+        canvas { display: block; position: absolute; top: 0; left: 0; z-index: 0; }
+
+        /* UI Panel - Initially Hidden */
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 20, 50, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 260px;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease;
+            transform: translateX(300px); /* Start off-screen */
+            opacity: 0;
+        }
+
+        #ui-container.visible {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        h1 { margin: 0 0 10px 0; font-size: 24px; font-weight: 700; color: #ffd700; text-align: center; text-shadow: 0 0 5px #ff0000; }
+        
+        .blessing-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px gold; }
+            50% { box-shadow: 0 0 20px gold; }
+            100% { box-shadow: 0 0 5px gold; }
+        }
+        
+        .blessing-text {
+            font-size: 20px;
+            line-height: 1.5;
+            color: #fff;
+            font-weight: bold;
+            background: linear-gradient(to right, #ffd700, #fff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Initial Hint */
+        #start-hint {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffd700;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 0 10px #ff0000;
+            animation: bounce 1.5s infinite;
+            z-index: 50;
+            pointer-events: none;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        /* Red Packet Rain */
+        .red-packet {
+            position: fixed;
+            top: -50px;
+            background: red;
+            border-radius: 4px;
+            border: 1px solid gold;
+            animation: fall linear forwards;
+            z-index: 50;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: gold;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+
+        /* Video Preview */
+        #video-preview {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 90px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            transform: scaleX(-1);
+            opacity: 0.8;
+            z-index: 10;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffd700;
+            font-size: 24px;
+            pointer-events: none;
+            text-shadow: 0 0 10px #ff0000;
+            text-align: center;
+        }
+
+        #status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 10;
+            text-shadow: 1px 1px 2px black;
+        }
+        
+        #fullscreen-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 0, 0, 0.5);
+            border: 1px solid gold;
+            color: gold;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            z-index: 100;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            #ui-container {
+                width: auto;
+                left: 20px;
+                right: 20px;
+                top: auto;
+                bottom: 80px; /* Above fullscreen btn */
+                padding: 15px;
+            }
+            #video-preview {
+                top: 20px;
+                bottom: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">🐎 正在初始化赛博马...<br><span style="font-size: 14px; color: #fff;">请允许摄像头权限以获得最佳体验</span></div>
+    <div id="status">等待手势...</div>
+    <div id="start-hint">🖐️ 请对着镜头张开手掌<br>开启马年祝福</div>
+    
+    <video id="video-preview" playsinline muted></video>
+    
+    <div id="ui-container">
+        <h1>2026 马年大吉</h1>
+        
+        <div class="blessing-card">
+            <div class="blessing-text" id="blessing-text">
+                一马当先<br>万事如意
+            </div>
+        </div>
+    </div>
+
+    <button id="fullscreen-btn" onclick="toggleFullScreen()">⛶</button>
+
+    <!-- Import Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // --- Global Error Handler ---
+        window.onerror = function(msg, url, line, col, error) {
+            const status = document.getElementById('status');
+            if (status) {
+                status.innerText = "ERROR: " + msg;
+                status.style.color = "red";
+            }
+            return false;
+        };
+
+        // --- Configuration ---
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // --- State ---
+        const state = {
+            handRotation: { x: 0, y: 0 },
+            handOpenness: 1.0, // 0 (Closed) to 1 (Open)
+            isHandDetected: false,
+            isTouchMode: false
+        };
+
+        // --- Three.js Setup ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050005, 0.002); // Dark Reddish Fog
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        // Center the camera more effectively
+        camera.position.set(20, 30, 100);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+        
+        // Canvas Styling
+        renderer.domElement.style.position = 'absolute';
+        renderer.domElement.style.top = '0';
+        renderer.domElement.style.left = '0';
+        renderer.domElement.style.width = '100%';
+        renderer.domElement.style.height = '100%';
+        renderer.domElement.style.zIndex = '0';
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.maxPolarAngle = Math.PI / 2;
+        controls.minDistance = 20;
+        controls.maxDistance = 500;
+        // Ensure we look at the center of the scene
+        controls.target.set(0, 10, 0); 
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffd700, 2);
+        dirLight.position.set(50, 100, 50);
+        scene.add(dirLight);
+        
+        const pointLight = new THREE.PointLight(0xff0000, 5, 500); // Red light for NY
+        pointLight.position.set(-50, 50, 50);
+        scene.add(pointLight);
+
+        // --- Horse Setup ---
+        let mixer;
+        const horseGroup = new THREE.Group();
+        scene.add(horseGroup);
+
+        // Particle Texture Helper
+        function createParticleTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            grad.addColorStop(0, 'rgba(255, 215, 0, 1)'); // Gold center
+            grad.addColorStop(0.4, 'rgba(255, 0, 0, 0.5)'); // Red halo
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 32, 32);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const loader = new GLTFLoader();
+        // Try local load, fallback to CDN
+        const localUrl = 'Horse.glb';
+        const cdnUrl = 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/models/gltf/Horse.glb';
+        
+        function loadModel(url) {
+            console.log("Attempting to load:", url);
+            loader.load(url, (gltf) => {
+                document.getElementById('loading').style.display = 'none';
+                console.log("Horse Loaded from " + url);
+                
+                const mesh = gltf.scene.children[0];
+                const originalGeo = mesh.geometry;
+                
+                // Particle System
+                const particlesGeo = originalGeo.clone();
+                const posAttribute = particlesGeo.attributes.position;
+                const count = posAttribute.count;
+                
+                // Add colors
+                const colors = [];
+                const color1 = new THREE.Color(0xffd700); // Gold
+                const color2 = new THREE.Color(0xff0000); // Red
+                
+                for(let i=0; i<count; i++) {
+                    const y = posAttribute.getY(i);
+                    // y range is approx -50 to 150
+                    const t = (y + 50) / 200;
+                    const c = color1.clone().lerp(color2, Math.random() * 0.5);
+                    colors.push(c.r, c.g, c.b);
+                }
+                particlesGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+                
+                const particlesMat = new THREE.PointsMaterial({
+                    size: isMobile ? 2.5 : 1.5, // Bigger for visibility
+                    vertexColors: true,
+                    map: createParticleTexture(),
+                    transparent: true,
+                    opacity: 0.9,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    morphTargets: true
+                });
+                
+                const particleSystem = new THREE.Points(particlesGeo, particlesMat);
+                horseGroup.add(particleSystem);
+                
+                // Wireframe
+                const wireMat = new THREE.MeshBasicMaterial({
+                    color: 0xffd700,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.15,
+                    morphTargets: true
+                });
+                const wireMesh = new THREE.Mesh(originalGeo, wireMat);
+                horseGroup.add(wireMesh);
+                
+                // Animation
+                mixer = new THREE.AnimationMixer(horseGroup);
+                const clip = gltf.animations[0];
+                if(clip) {
+                    mixer.clipAction(clip, particleSystem).play();
+                    mixer.clipAction(clip, wireMesh).play();
+                }
+                
+                // Center
+                const box = new THREE.Box3().setFromObject(horseGroup);
+                const center = box.getCenter(new THREE.Vector3());
+                horseGroup.position.sub(center);
+                horseGroup.scale.set(0.3, 0.3, 0.3);
+
+            }, undefined, (err) => {
+                console.warn("Load failed:", url, err);
+                if (url === localUrl) {
+                    loadModel(cdnUrl); // Retry with CDN
+                } else {
+                    console.error("All load methods failed. Using Procedural Fallback.");
+                    loadProceduralFallback();
+                }
+            });
+        }
+        
+        function loadProceduralFallback() {
+             document.getElementById('loading').innerText = "加载备用模型...";
+             
+             // Create a simple procedural horse shape using points
+             const positions = [];
+             const colors = [];
+             const color1 = new THREE.Color(0xffd700);
+             const color2 = new THREE.Color(0xff0000);
+             
+             // Torso
+             for(let i=0; i<2000; i++) {
+                 const x = (Math.random()-0.5) * 30;
+                 const y = (Math.random()-0.5) * 30;
+                 const z = (Math.random()-0.5) * 80;
+                 positions.push(x, y, z);
+                 const c = color1.clone().lerp(color2, Math.random());
+                 colors.push(c.r, c.g, c.b);
+             }
+             // Neck & Head
+             for(let i=0; i<1000; i++) {
+                 const x = (Math.random()-0.5) * 15;
+                 const y = (Math.random()) * 40 + 15;
+                 const z = (Math.random()) * 30 + 30;
+                 positions.push(x, y, z);
+                 const c = color1.clone().lerp(color2, Math.random());
+                 colors.push(c.r, c.g, c.b);
+             }
+             
+             const geo = new THREE.BufferGeometry();
+             geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+             geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+             
+             const mat = new THREE.PointsMaterial({
+                size: 3.0,
+                vertexColors: true,
+                map: createParticleTexture(),
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+             });
+             
+             const points = new THREE.Points(geo, mat);
+             horseGroup.add(points);
+             
+             document.getElementById('loading').style.display = 'none';
+             
+             // Simple bobbing animation fallback
+             mixer = {
+                 update: (delta) => {
+                     horseGroup.rotation.x = Math.sin(Date.now() * 0.005) * 0.1;
+                 },
+                 timeScale: 1
+             };
+        }
+        
+        loadModel(localUrl);
+
+        // Ground
+        const groundGeo = new THREE.PlaneGeometry(1000, 1000);
+        const groundMat = new THREE.MeshStandardMaterial({ 
+            color: 0x220000, 
+            roughness: 0.2,
+            metalness: 0.8,
+            transparent: true, 
+            opacity: 0.5
+        });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -30;
+        scene.add(ground);
+        
+        // --- Red Packet Rain ---
+        function triggerRedPacketRain() {
+            const container = document.body;
+            // More diverse sizes and faster fall
+            for(let i=0; i<30; i++) {
+                setTimeout(() => {
+                    const packet = document.createElement('div');
+                    packet.className = 'red-packet';
+                    packet.innerText = ['🧧', '💰', '🐎', '🧨', '福'][Math.floor(Math.random()*5)];
+                    
+                    // Random size
+                    const size = Math.random() * 30 + 20; // 20px to 50px
+                    packet.style.fontSize = size + 'px';
+                    packet.style.width = (size * 0.8) + 'px';
+                    packet.style.height = (size * 1.2) + 'px';
+                    
+                    packet.style.left = Math.random() * 100 + 'vw';
+                    packet.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                    container.appendChild(packet);
+                    
+                    setTimeout(() => packet.remove(), 4000);
+                }, i * 80);
+            }
+        }
+
+        // --- Interaction Logic ---
+        
+        // MediaPipe Hands
+        const videoElement = document.getElementById('video-preview');
+        const statusElement = document.getElementById('status');
+        const uiContainer = document.getElementById('ui-container');
+        const startHint = document.getElementById('start-hint');
+        const blessingText = document.getElementById('blessing-text');
+        
+        let hasTriggeredBlessing = false;
+
+        const BLESSINGS = [
+            "一马当先", "马到成功", "万马奔腾", "龙马精神",
+            "天马行空", "汗马功劳", "驷马难追", "金马玉堂",
+            "财源广进", "万事如意", "心想事成", "吉星高照",
+            "五福临门", "大展宏图", "前程似锦", "步步高升"
+        ];
+
+        function showRandomBlessing() {
+            // Pick two random blessings
+            const b1 = BLESSINGS[Math.floor(Math.random() * BLESSINGS.length)];
+            const b2 = BLESSINGS[Math.floor(Math.random() * BLESSINGS.length)];
+            blessingText.innerHTML = `${b1}<br>${b2}`;
+        }
+
+        function onResults(results) {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                state.isHandDetected = true;
+                state.isTouchMode = false;
+                statusElement.innerText = "手势识别中...";
+                statusElement.style.color = "#0f0";
+                
+                const landmarks = results.multiHandLandmarks[0];
+                
+                // 1. Openness (Thumb to Index)
+                const thumbTip = landmarks[4];
+                const indexTip = landmarks[8];
+                const wrist = landmarks[0];
+                const middleMcp = landmarks[9];
+                
+                const handSize = Math.sqrt(Math.pow(middleMcp.x - wrist.x, 2) + Math.pow(middleMcp.y - wrist.y, 2));
+                const pinchDist = Math.sqrt(Math.pow(thumbTip.x - indexTip.x, 2) + Math.pow(thumbTip.y - indexTip.y, 2));
+                
+                // Openness: < 0.3 is closed, > 0.5 is open
+                let openness = pinchDist / handSize;
+                state.handOpenness = THREE.MathUtils.clamp(THREE.MathUtils.mapLinear(openness, 0.2, 0.8, 0, 1), 0, 1);
+                
+                // Trigger Blessing on Open Hand
+                if (state.handOpenness > 0.8 && !hasTriggeredBlessing) {
+                    hasTriggeredBlessing = true;
+                    // Show Random Blessing
+                    showRandomBlessing();
+                    // Show UI
+                    uiContainer.classList.add('visible');
+                    // Hide Hint
+                    startHint.style.display = 'none';
+                    // Trigger Rain
+                    triggerRedPacketRain();
+                }
+                
+                // 2. Position -> Rotation
+                const handX = 1.0 - landmarks[9].x; 
+                const handY = landmarks[9].y;
+                
+                state.handRotation.x = (handX - 0.5) * 2; 
+                state.handRotation.y = (handY - 0.5) * 2; 
+                
+            } else {
+                state.isHandDetected = false;
+                if (!state.isTouchMode) {
+                    statusElement.innerText = "等待手势...";
+                    statusElement.style.color = "#aaa";
+                    state.handOpenness = 1.0; // Default run if no hand
+                }
+            }
+        }
+
+        async function initCamera() {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("No Camera API");
+                
+                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+                hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: isMobile ? 0 : 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                hands.onResults(onResults);
+
+                const cameraUtils = new Camera(videoElement, {
+                    onFrame: async () => { await hands.send({image: videoElement}); },
+                    width: 320, height: 240
+                });
+                await cameraUtils.start();
+            } catch (err) {
+                console.warn("Camera failed:", err);
+                statusElement.innerText = "触控模式已激活";
+                state.isTouchMode = true;
+                videoElement.style.display = 'none';
+            }
+        }
+        
+        if (location.protocol === 'https:' || location.hostname === 'localhost') {
+            initCamera();
+        } else {
+            statusElement.innerText = "触控模式 (无摄像头权限)";
+            state.isTouchMode = true;
+            videoElement.style.display = 'none';
+            document.getElementById('start-hint').innerHTML = "👆 浏览器限制，摄像头无法开启<br>请使用<b>手指触控</b>与赛博马互动";
+            
+            // Show explicit guide for touch controls
+            setTimeout(() => {
+                alert("⚠️ 温馨提示：\n\n由于手机浏览器安全限制，通过 IP 访问无法开启摄像头。\n\n但这不影响体验！已为您自动切换到【触控模式】：\n\n👆 双指捏合：控制马儿奔跑速度\n👆 单指滑动：360度旋转视角\n\n尽情享受赛博马年吧！🐎✨");
+            }, 500);
+        }
+
+        // Touch Fallback
+        let touchStartDist = 0;
+        window.addEventListener('touchstart', (e) => {
+            state.isTouchMode = true;
+            if(e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                touchStartDist = Math.sqrt(dx*dx + dy*dy);
+            } else {
+                // Tap to rain
+                triggerRedPacketRain();
+            }
+        });
+        
+        window.addEventListener('touchmove', (e) => {
+            if(e.touches.length === 1) {
+                const t = e.touches[0];
+                state.handRotation.x = (t.clientX / window.innerWidth - 0.5) * 2;
+                state.handRotation.y = (t.clientY / window.innerHeight - 0.5) * 2;
+            } else if (e.touches.length === 2) {
+                // Pinch to control speed
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const scale = dist / touchStartDist;
+                state.handOpenness = Math.min(1, Math.max(0, scale)); // Map pinch to openness
+            }
+        });
+
+        // --- Animation Loop ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            // Update Animation Speed based on Hand Openness
+            // Open = Fast (2.0), Closed = Stop (0.0)
+            const targetSpeed = state.handOpenness * 2.0;
+            
+            if (mixer) {
+                // Smooth transition
+                mixer.timeScale = THREE.MathUtils.lerp(mixer.timeScale, targetSpeed, 0.1);
+                mixer.update(delta);
+            }
+            
+            // Hand Rotation influence
+            if (state.isHandDetected || state.isTouchMode) {
+                controls.autoRotate = false;
+                // Smooth rotate horse group
+                horseGroup.rotation.y = THREE.MathUtils.lerp(horseGroup.rotation.y, state.handRotation.x + Math.PI, 0.1); // +PI to face correct way?
+                horseGroup.rotation.x = THREE.MathUtils.lerp(horseGroup.rotation.x, state.handRotation.y * 0.5, 0.1);
+            } else {
+                controls.autoRotate = true;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // Fullscreen
+        window.toggleFullScreen = function() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
