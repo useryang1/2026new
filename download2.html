@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智同 - 聚散为一 下载</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0b0f;
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.68);
+      --accent: #4cc9f0;
+      --accent2: #4361ee;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 600px at 20% 10%, rgba(76, 201, 240, 0.18), transparent 55%),
+                  radial-gradient(900px 500px at 85% 30%, rgba(67, 97, 238, 0.14), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .wrap {
+      width: min(980px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 22px 22px 18px;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 26px;
+      letter-spacing: 1px;
+      line-height: 1.2;
+    }
+    .sub {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .card {
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    .disclaimer {
+      padding: 16px 16px 14px;
+      max-height: min(55vh, 520px);
+      overflow: auto;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 14px;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      border-top: 1px solid var(--panel-border);
+      background: rgba(0, 0, 0, 0.20);
+    }
+    .check {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 14px;
+      user-select: none;
+    }
+    .check input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: linear-gradient(45deg, rgba(76, 201, 240, 0.95), rgba(67, 97, 238, 0.85));
+      color: #101018;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      min-width: 170px;
+      transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .btn:active { transform: translateY(0); filter: brightness(0.98); }
+    .btn[aria-disabled="true"] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.2);
+      transform: none;
+      pointer-events: none;
+    }
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      max-width: 520px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 12px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>下载：智同 - 聚散为一 <span class="pill">需同意免责申明</span></h1>
+    <p class="sub">下载前请完整阅读并勾选同意。若您不同意本申明，请勿下载、安装或运行本工具。</p>
+
+    <section class="card" role="region" aria-label="免责声明">
+      <div class="disclaimer" id="disclaimer">
+智同 - 聚散为一 免责声明 
+
+1. 用途与合规声明 
+本工具（“智同 - 聚散为一”）仅为 个人学习、研究和合法娱乐用途 开发，旨在简化游戏多开场景下的手动操作流程，不涉及任何游戏数据篡改、外挂、作弊等违规行为。你承诺仅在符合所玩游戏的用户协议、相关法律法规及平台规则的前提下使用本工具，因违反游戏规则、平台协议或法律法规导致的账号封禁、处罚、法律责任等，均由你自行承担。 
+
+2. 责任限制 
+本工具为免费开源的 Python 辅助程序，开发者仅提供技术实现， 不对工具的稳定性、兼容性、可用性做任何明示或默示的保证 。因工具运行故障（如按键同步延迟、指令执行错误、连接中断等）导致的游戏体验受损、虚拟财产损失、账号异常等，开发者不承担任何赔偿或连带责任。 
+你需自行承担使用本工具产生的网络费用、硬件损耗、软件兼容问题等一切成本和风险，开发者不对使用过程中产生的直接或间接损失负责。 
+
+3. 免责范围 
+因你自身操作失误（如错误设置指令序列、误触控制键、未正确配置主从机网络）导致的任何问题； 
+因游戏版本更新、服务器维护、平台反作弊机制调整等外部因素导致工具无法正常使用； 
+因第三方软件（如杀毒软件、防火墙、其他游戏辅助工具）干扰本工具运行产生的后果； 
+未经授权修改本工具源代码、二次分发或用于商业用途导致的一切责任。 
+
+4. 风险提示 
+游戏多开及按键同步行为可能被部分游戏运营方认定为违规操作，你应自行评估使用风险。使用本工具即表示你已充分知晓并接受上述所有免责条款，开发者保留随时修改本免责声明的权利，修改后的声明将通过工具内置公告或相关渠道公示。 
+
+5. 最终解释权 
+本免责声明的最终解释权归 “智同 - 聚散为一” 开发者所有。如你不同意本免责声明的任何条款，请勿使用本工具。
+      </div>
+      <div class="actions">
+        <label class="check">
+          <input id="agree" type="checkbox" />
+          我已阅读并完全同意以上免责申明
+        </label>
+
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <a id="downloadBtn" class="btn" href="https://www.123865.com/s/3Ccuvd-Zd3Bv" target="_blank" rel="noopener noreferrer" aria-disabled="true">前往 123 云盘下载</a>
+        </div>
+        <div class="hint" id="hint">
+          若点击下载无反应，请先勾选同意；部分浏览器会提示“此文件可能有风险”，属于正常安全提示。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const agree = document.getElementById('agree');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const hint = document.getElementById('hint');
+
+    function sync() {
+      const ok = agree.checked;
+      downloadBtn.setAttribute('aria-disabled', ok ? 'false' : 'true');
+      hint.textContent = ok
+        ? '已同意免责申明，点击“前往 123 云盘下载”开始下载。'
+        : '若点击下载无反应，请先勾选同意；部分浏览器会提示“此文件可能有风险”，属于正常安全提示。';
+    }
+
+    agree.addEventListener('change', sync);
+    sync();
+  </script>
+</body>
+</html>
